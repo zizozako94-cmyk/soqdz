@@ -41,18 +41,21 @@ export type Database = {
           id: string
           office_price: number
           updated_at: string
+          whatsapp_number: string | null
         }
         Insert: {
           home_price?: number
           id?: string
           office_price?: number
           updated_at?: string
+          whatsapp_number?: string | null
         }
         Update: {
           home_price?: number
           id?: string
           office_price?: number
           updated_at?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
