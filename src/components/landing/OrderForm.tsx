@@ -74,20 +74,37 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.from("orders").insert({
-        customer_name: data.customerName,
-        phone: data.phone,
-        wilaya: data.wilaya,
-        commune: data.commune,
-        delivery_type: deliveryType,
-        product_id: product?.id,
-        product_price: productPrice,
-        delivery_price: deliveryPrice,
-        total_price: totalPrice,
-        status: "pending",
+      // Use edge function with rate limiting for order submission
+      const response = await supabase.functions.invoke('submit-order', {
+        body: {
+          customer_name: data.customerName,
+          phone: data.phone,
+          wilaya: data.wilaya,
+          commune: data.commune,
+          delivery_type: deliveryType,
+          product_id: product?.id,
+          product_price: productPrice,
+          delivery_price: deliveryPrice,
+          total_price: totalPrice,
+        }
       });
 
-      if (error) throw error;
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to submit order');
+      }
+
+      // Check for rate limit error in response data
+      if (response.data?.error) {
+        if (response.data.error.includes('Too many orders')) {
+          toast({
+            title: "الرجاء الانتظار",
+            description: "لقد قمت بإرسال عدة طلبات. يرجى المحاولة لاحقاً.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(response.data.error);
+      }
 
       toast({
         title: "✅ تم تسجيل طلبك بنجاح!",
