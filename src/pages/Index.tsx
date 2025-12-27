@@ -53,7 +53,10 @@ const Index = () => {
           setDeliverySettings(delivery);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        // Only log in development to avoid exposing internal details in production
+        if (import.meta.env.DEV) {
+          console.error("Error fetching data:", error);
+        }
       } finally {
         setIsLoading(false);
       }
