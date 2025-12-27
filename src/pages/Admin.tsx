@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Package, ShoppingCart, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import OrdersTable from "@/components/admin/OrdersTable";
+import ProductsManager from "@/components/admin/ProductsManager";
+import SettingsManager from "@/components/admin/SettingsManager";
 
 const Admin = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -149,42 +152,15 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="orders">
-            <Card>
-              <CardHeader>
-                <CardTitle>إدارة الطلبات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  قريباً - إدارة ومتابعة الطلبات
-                </p>
-              </CardContent>
-            </Card>
+            <OrdersTable />
           </TabsContent>
 
           <TabsContent value="products">
-            <Card>
-              <CardHeader>
-                <CardTitle>إدارة المنتجات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  قريباً - إضافة وتعديل المنتجات
-                </p>
-              </CardContent>
-            </Card>
+            <ProductsManager />
           </TabsContent>
 
           <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>الإعدادات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  قريباً - إعدادات التوصيل والأسعار
-                </p>
-              </CardContent>
-            </Card>
+            <SettingsManager />
           </TabsContent>
         </Tabs>
       </main>
