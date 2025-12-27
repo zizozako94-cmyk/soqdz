@@ -98,7 +98,10 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
       setDeliveryType("office");
       setSelectedWilaya("");
     } catch (error) {
-      console.error("Order error:", error);
+      // Log only in development, avoid exposing error details in production
+      if (import.meta.env.DEV) {
+        console.error("Order error:", error);
+      }
       toast({
         title: "حدث خطأ",
         description: "لم نتمكن من تسجيل طلبك، يرجى المحاولة مرة أخرى",
