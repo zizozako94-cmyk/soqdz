@@ -5,11 +5,18 @@ import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Package, ShoppingCart, Settings } from "lucide-react";
+import { LogOut, Package, ShoppingCart, Settings, Type, Palette, Truck, Code, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import OrdersTable from "@/components/admin/OrdersTable";
 import ProductsManager from "@/components/admin/ProductsManager";
 import SettingsManager from "@/components/admin/SettingsManager";
+import LandingContentEditor from "@/components/admin/LandingContentEditor";
+import TrustBadgesManager from "@/components/admin/TrustBadgesManager";
+import FAQManager from "@/components/admin/FAQManager";
+import BrandIdentityManager from "@/components/admin/BrandIdentityManager";
+import ShippingManager from "@/components/admin/ShippingManager";
+import PixelManager from "@/components/admin/PixelManager";
+import SalesPopupManager from "@/components/admin/SalesPopupManager";
 
 const Admin = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -136,18 +143,34 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="orders" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="flex flex-wrap h-auto gap-1 mb-8">
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
-              الطلبات
+              <span className="hidden sm:inline">الطلبات</span>
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
-              المنتجات
+              <span className="hidden sm:inline">المنتجات</span>
+            </TabsTrigger>
+            <TabsTrigger value="content" className="flex items-center gap-2">
+              <Type className="h-4 w-4" />
+              <span className="hidden sm:inline">المحتوى</span>
+            </TabsTrigger>
+            <TabsTrigger value="brand" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              <span className="hidden sm:inline">الهوية</span>
+            </TabsTrigger>
+            <TabsTrigger value="shipping" className="flex items-center gap-2">
+              <Truck className="h-4 w-4" />
+              <span className="hidden sm:inline">الشحن</span>
+            </TabsTrigger>
+            <TabsTrigger value="marketing" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">التسويق</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              الإعدادات
+              <span className="hidden sm:inline">الإعدادات</span>
             </TabsTrigger>
           </TabsList>
 
@@ -157,6 +180,25 @@ const Admin = () => {
 
           <TabsContent value="products">
             <ProductsManager />
+          </TabsContent>
+
+          <TabsContent value="content" className="space-y-8">
+            <LandingContentEditor />
+            <TrustBadgesManager />
+            <FAQManager />
+          </TabsContent>
+
+          <TabsContent value="brand">
+            <BrandIdentityManager />
+          </TabsContent>
+
+          <TabsContent value="shipping">
+            <ShippingManager />
+          </TabsContent>
+
+          <TabsContent value="marketing" className="space-y-8">
+            <PixelManager />
+            <SalesPopupManager />
           </TabsContent>
 
           <TabsContent value="settings">

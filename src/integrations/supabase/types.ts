@@ -59,6 +59,84 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_items: {
+        Row: {
+          content: string
+          created_at: string
+          icon_name: string
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      free_shipping_wilayas: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          wilaya_code: string
+          wilaya_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          wilaya_code: string
+          wilaya_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          wilaya_code?: string
+          wilaya_name?: string
+        }
+        Relationships: []
+      }
+      landing_content: {
+        Row: {
+          content: Json
+          id: string
+          section_key: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          id?: string
+          section_key: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          id?: string
+          section_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           commune: string
@@ -147,6 +225,126 @@ export type Database = {
           name?: string
           price?: number
           stock_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sales_popups: {
+        Row: {
+          created_at: string
+          customer_name: string
+          id: string
+          is_active: boolean | null
+          is_fake: boolean | null
+          product_name: string
+          wilaya: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          id?: string
+          is_active?: boolean | null
+          is_fake?: boolean | null
+          product_name: string
+          wilaya: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_fake?: boolean | null
+          product_name?: string
+          wilaya?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          accent_color: string | null
+          border_radius: string | null
+          created_at: string
+          facebook_pixel: string | null
+          font_family: string | null
+          hero_video_url: string | null
+          id: string
+          primary_color: string | null
+          secondary_color: string | null
+          show_sales_popup: boolean | null
+          snapchat_pixel: string | null
+          sticky_order_bar: boolean | null
+          tiktok_pixel: string | null
+          updated_at: string
+          whatsapp_template: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          border_radius?: string | null
+          created_at?: string
+          facebook_pixel?: string | null
+          font_family?: string | null
+          hero_video_url?: string | null
+          id?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          show_sales_popup?: boolean | null
+          snapchat_pixel?: string | null
+          sticky_order_bar?: boolean | null
+          tiktok_pixel?: string | null
+          updated_at?: string
+          whatsapp_template?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          border_radius?: string | null
+          created_at?: string
+          facebook_pixel?: string | null
+          font_family?: string | null
+          hero_video_url?: string | null
+          id?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          show_sales_popup?: boolean | null
+          snapchat_pixel?: string | null
+          sticky_order_bar?: boolean | null
+          tiktok_pixel?: string | null
+          updated_at?: string
+          whatsapp_template?: string | null
+        }
+        Relationships: []
+      }
+      trust_badges: {
+        Row: {
+          badge_type: string | null
+          created_at: string
+          description: string | null
+          icon_name: string
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge_type?: string | null
+          created_at?: string
+          description?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge_type?: string | null
+          created_at?: string
+          description?: string | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
           updated_at?: string
         }
         Relationships: []
