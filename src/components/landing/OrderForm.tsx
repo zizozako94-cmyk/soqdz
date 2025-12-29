@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -43,6 +44,7 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
   const [selectedWilaya, setSelectedWilaya] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -106,14 +108,8 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
         throw new Error(response.data.error);
       }
 
-      toast({
-        title: "✅ تم تسجيل طلبك بنجاح!",
-        description: "سنتواصل معك قريباً لتأكيد الطلب",
-      });
-
-      reset();
-      setDeliveryType("office");
-      setSelectedWilaya("");
+      // Navigate to success page
+      navigate("/order-success");
     } catch (error) {
       // Log only in development, avoid exposing error details in production
       if (import.meta.env.DEV) {
