@@ -103,6 +103,50 @@ function validateOrder(data: any): { valid: boolean; errors: string[] } {
   return { valid: errors.length === 0, errors };
 }
 
+// Send Telegram notification
+async function sendTelegramNotification(orderData: any, productName: string): Promise<void> {
+  const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+  const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
+  
+  if (!botToken || !chatId) {
+    console.log('Telegram credentials not configured, skipping notification');
+    return;
+  }
+  
+  const message = `🛒 *طلب جديد!*
+
+👤 *الاسم:* ${orderData.customer_name}
+📞 *الهاتف:* ${orderData.phone}
+📍 *العنوان:* ${orderData.wilaya} - ${orderData.commune}
+🚚 *نوع التوصيل:* ${orderData.delivery_type === 'home' ? 'للمنزل' : 'للمكتب'}
+
+📦 *المنتج:* ${productName}
+💰 *سعر المنتج:* ${orderData.product_price} دج
+🚛 *سعر التوصيل:* ${orderData.delivery_price} دج
+💵 *المجموع:* ${orderData.total_price} دج`;
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Telegram API error:', errorText);
+    } else {
+      console.log('Telegram notification sent successfully');
+    }
+  } catch (error) {
+    console.error('Failed to send Telegram notification:', error);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -153,6 +197,19 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
+    // Get product name for notification
+    let productName = 'غير محدد';
+    if (orderData.product_id) {
+      const { data: product } = await supabase
+        .from('products')
+        .select('name')
+        .eq('id', orderData.product_id)
+        .maybeSingle();
+      if (product) {
+        productName = product.name;
+      }
+    }
+    
     // Insert order
     const { data, error } = await supabase.from('orders').insert({
       customer_name: orderData.customer_name,
@@ -176,6 +233,12 @@ serve(async (req) => {
     }
     
     console.log(`Order created successfully: ${data.id} from IP: ${ip.substring(0, 8)}...`);
+    
+    // Send Telegram notification (don't wait for it)
+    // Send Telegram notification in background
+    sendTelegramNotification(orderData, productName).catch(err => 
+      console.error('Background Telegram notification failed:', err)
+    );
     
     return new Response(
       JSON.stringify({ success: true, orderId: data.id }),
