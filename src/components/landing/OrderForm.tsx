@@ -109,7 +109,7 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
       }
 
       // Navigate to success page
-      navigate("/order-success");
+      navigate("/success");
     } catch (error) {
       // Log only in development, avoid exposing error details in production
       if (import.meta.env.DEV) {
