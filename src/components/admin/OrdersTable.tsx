@@ -18,7 +18,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MessageCircle, RefreshCw, Package } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { MessageCircle, RefreshCw, Package, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -107,6 +118,24 @@ const OrdersTable = () => {
       `مرحباً ${customerName}، نتواصل معك بخصوص طلبك من HONESTPRO.`
     );
     window.open(`https://wa.me/${formattedPhone}?text=${message}`, "_blank");
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    const { error } = await supabase.from("orders").delete().eq("id", orderId);
+
+    if (error) {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الطلب",
+        variant: "destructive",
+      });
+    } else {
+      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف الطلب بنجاح",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -211,16 +240,46 @@ const OrdersTable = () => {
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        onClick={() =>
-                          openWhatsApp(order.phone, order.customer_name)
-                        }
-                        variant="outline"
-                        size="sm"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Button
+                          onClick={() =>
+                            openWhatsApp(order.phone, order.customer_name)
+                          }
+                          variant="outline"
+                          size="sm"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent dir="rtl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                هل أنت متأكد من حذف هذا الطلب نهائياً؟
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex-row-reverse gap-2">
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteOrder(order.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
