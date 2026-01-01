@@ -313,6 +313,42 @@ export type Database = {
         }
         Relationships: []
       }
+      store_settings: {
+        Row: {
+          about_us: string
+          address: string
+          created_at: string
+          email: string
+          id: string
+          phone: string
+          updated_at: string
+          working_hours_friday: string
+          working_hours_weekdays: string
+        }
+        Insert: {
+          about_us?: string
+          address?: string
+          created_at?: string
+          email?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+          working_hours_friday?: string
+          working_hours_weekdays?: string
+        }
+        Update: {
+          about_us?: string
+          address?: string
+          created_at?: string
+          email?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+          working_hours_friday?: string
+          working_hours_weekdays?: string
+        }
+        Relationships: []
+      }
       trust_badges: {
         Row: {
           badge_type: string | null
