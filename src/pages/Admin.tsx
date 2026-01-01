@@ -5,7 +5,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Package, ShoppingCart, Settings, Type, Palette, Truck, Code, Bell } from "lucide-react";
+import { LogOut, Package, ShoppingCart, Settings, Type, Palette, Truck, Code, Bell, Store } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import OrdersTable from "@/components/admin/OrdersTable";
 import ProductsManager from "@/components/admin/ProductsManager";
@@ -17,6 +17,7 @@ import BrandIdentityManager from "@/components/admin/BrandIdentityManager";
 import ShippingManager from "@/components/admin/ShippingManager";
 import PixelManager from "@/components/admin/PixelManager";
 import SalesPopupManager from "@/components/admin/SalesPopupManager";
+import StoreSettingsManager from "@/components/admin/StoreSettingsManager";
 
 const Admin = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -168,6 +169,10 @@ const Admin = () => {
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">التسويق</span>
             </TabsTrigger>
+            <TabsTrigger value="store" className="flex items-center gap-2">
+              <Store className="h-4 w-4" />
+              <span className="hidden sm:inline">المتجر</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">الإعدادات</span>
@@ -199,6 +204,10 @@ const Admin = () => {
           <TabsContent value="marketing" className="space-y-8">
             <PixelManager />
             <SalesPopupManager />
+          </TabsContent>
+
+          <TabsContent value="store">
+            <StoreSettingsManager />
           </TabsContent>
 
           <TabsContent value="settings">
