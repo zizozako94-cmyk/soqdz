@@ -2,3 +2,6 @@ project_id = "xltskxhopictuldbbqel"
 
 [functions.submit-order]
 verify_jwt = false
+
+[functions.update-store-settings]
+verify_jwt = false
