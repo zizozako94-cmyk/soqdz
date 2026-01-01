@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { User, Phone, MapPin, Truck, Home, Building } from "lucide-react";
+import { User, Phone, MapPin, Truck, Home, Building, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,8 +43,31 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
   const [deliveryType, setDeliveryType] = useState<"office" | "home">("office");
   const [selectedWilaya, setSelectedWilaya] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [freeShippingWilayas, setFreeShippingWilayas] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Fetch free shipping wilayas
+  useEffect(() => {
+    const fetchFreeShippingWilayas = async () => {
+      try {
+        const { data } = await supabase
+          .from("free_shipping_wilayas")
+          .select("wilaya_name")
+          .eq("is_active", true);
+        
+        if (data) {
+          setFreeShippingWilayas(data.map(w => w.wilaya_name));
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error("Error fetching free shipping wilayas:", error);
+        }
+      }
+    };
+
+    fetchFreeShippingWilayas();
+  }, []);
 
   const {
     register,
@@ -63,7 +86,10 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
   const productPrice = product?.price || 9200;
   const officePrice = deliverySettings?.office_price || 500;
   const homePrice = deliverySettings?.home_price || 700;
-  const deliveryPrice = deliveryType === "office" ? officePrice : homePrice;
+  
+  // Check if selected wilaya has free shipping
+  const isFreeShipping = watchedWilaya && freeShippingWilayas.includes(watchedWilaya);
+  const deliveryPrice = isFreeShipping ? 0 : (deliveryType === "office" ? officePrice : homePrice);
   const totalPrice = productPrice + deliveryPrice;
 
   const handleWilayaChange = (value: string) => {
@@ -223,6 +249,17 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
               )}
             </div>
 
+            {/* Free Shipping Notice */}
+            {isFreeShipping && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-3">
+                <Gift className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <div>
+                  <p className="font-bold text-green-700 dark:text-green-300">🎉 شحن مجاني!</p>
+                  <p className="text-sm text-green-600 dark:text-green-400">هذه الولاية تستفيد من الشحن المجاني</p>
+                </div>
+              </div>
+            )}
+
             {/* Delivery Type */}
             <div className="space-y-3">
               <Label className="flex items-center gap-2 text-base">
@@ -241,7 +278,10 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
                 >
                   <Building className={`w-8 h-8 mx-auto mb-2 ${deliveryType === "office" ? "text-gold" : "text-muted-foreground"}`} />
                   <p className="font-semibold">للمكتب</p>
-                  <p className="text-gold font-bold">{officePrice} دج</p>
+                  <p className={`font-bold ${isFreeShipping ? "text-green-600 line-through" : "text-gold"}`}>
+                    {isFreeShipping ? `${officePrice} دج` : `${officePrice} دج`}
+                  </p>
+                  {isFreeShipping && <p className="text-green-600 font-bold">مجاني</p>}
                 </button>
                 <button
                   type="button"
@@ -254,7 +294,10 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
                 >
                   <Home className={`w-8 h-8 mx-auto mb-2 ${deliveryType === "home" ? "text-gold" : "text-muted-foreground"}`} />
                   <p className="font-semibold">للمنزل</p>
-                  <p className="text-gold font-bold">{homePrice} دج</p>
+                  <p className={`font-bold ${isFreeShipping ? "text-green-600 line-through" : "text-gold"}`}>
+                    {isFreeShipping ? `${homePrice} دج` : `${homePrice} دج`}
+                  </p>
+                  {isFreeShipping && <p className="text-green-600 font-bold">مجاني</p>}
                 </button>
               </div>
             </div>
@@ -268,7 +311,9 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">سعر التوصيل</span>
-                <span className="font-semibold">{deliveryPrice.toLocaleString()} دج</span>
+                <span className={`font-semibold ${isFreeShipping ? "text-green-600" : ""}`}>
+                  {isFreeShipping ? "مجاني 🎁" : `${deliveryPrice.toLocaleString()} دج`}
+                </span>
               </div>
               <div className="h-px bg-border my-3" />
               <div className="flex justify-between text-xl">
