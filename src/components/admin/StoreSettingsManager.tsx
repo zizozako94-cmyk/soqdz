@@ -68,28 +68,28 @@ const StoreSettingsManager = () => {
   };
 
   const handleSave = async () => {
-    if (!settings) return;
-
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("store_settings")
-        .update({
+      const response = await supabase.functions.invoke("update-store-settings", {
+        body: {
           about_us: formData.about_us,
           phone: formData.phone,
           email: formData.email,
           address: formData.address,
           working_hours_weekdays: formData.working_hours_weekdays,
           working_hours_friday: formData.working_hours_friday,
-        })
-        .eq("id", settings.id);
+        },
+      });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
 
       toast({
         title: "تم الحفظ",
         description: "تم تحديث إعدادات المتجر بنجاح",
       });
+      
+      // Refresh settings after save
+      fetchSettings();
     } catch (error) {
       console.error("Error saving store settings:", error);
       toast({
