@@ -388,7 +388,7 @@ const ProductsManager = () => {
                         onClick={() => startEditingFeature(index)}
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -396,7 +396,7 @@ const ProductsManager = () => {
                         onClick={() => removeFeature(index)}
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
