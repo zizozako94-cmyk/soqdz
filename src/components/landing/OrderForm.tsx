@@ -39,34 +39,49 @@ interface OrderFormProps {
   } | null;
 }
 
+interface WilayaPrice {
+  wilaya_name: string;
+  home_price: number;
+  office_price: number;
+}
+
 const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
   const [deliveryType, setDeliveryType] = useState<"office" | "home">("office");
   const [selectedWilaya, setSelectedWilaya] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [freeShippingWilayas, setFreeShippingWilayas] = useState<string[]>([]);
+  const [wilayaPrices, setWilayaPrices] = useState<WilayaPrice[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Fetch free shipping wilayas
+  // Fetch free shipping wilayas and wilaya prices
   useEffect(() => {
-    const fetchFreeShippingWilayas = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await supabase
-          .from("free_shipping_wilayas")
-          .select("wilaya_name")
-          .eq("is_active", true);
+        const [freeShipRes, pricesRes] = await Promise.all([
+          supabase
+            .from("free_shipping_wilayas")
+            .select("wilaya_name")
+            .eq("is_active", true),
+          supabase
+            .from("wilaya_delivery_prices")
+            .select("wilaya_name, home_price, office_price")
+        ]);
         
-        if (data) {
-          setFreeShippingWilayas(data.map(w => w.wilaya_name));
+        if (freeShipRes.data) {
+          setFreeShippingWilayas(freeShipRes.data.map(w => w.wilaya_name));
+        }
+        if (pricesRes.data) {
+          setWilayaPrices(pricesRes.data);
         }
       } catch (error) {
         if (import.meta.env.DEV) {
-          console.error("Error fetching free shipping wilayas:", error);
+          console.error("Error fetching data:", error);
         }
       }
     };
 
-    fetchFreeShippingWilayas();
+    fetchData();
   }, []);
 
   const {
@@ -84,8 +99,11 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
   const selectedWilayaData = getWilayaByName(watchedWilaya);
 
   const productPrice = product?.price || 9200;
-  const officePrice = deliverySettings?.office_price || 500;
-  const homePrice = deliverySettings?.home_price || 700;
+  
+  // Get wilaya-specific prices
+  const currentWilayaPrice = wilayaPrices.find(w => w.wilaya_name === watchedWilaya);
+  const officePrice = currentWilayaPrice?.office_price || deliverySettings?.office_price || 350;
+  const homePrice = currentWilayaPrice?.home_price || deliverySettings?.home_price || 600;
   
   // Check if selected wilaya has free shipping
   const isFreeShipping = watchedWilaya && freeShippingWilayas.includes(watchedWilaya);

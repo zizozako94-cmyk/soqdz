@@ -32,10 +32,19 @@ interface SiteSettings {
   whatsapp_template: string;
 }
 
+interface WilayaDeliveryPrice {
+  id: string;
+  wilaya_code: string;
+  wilaya_name: string;
+  home_price: number;
+  office_price: number;
+}
+
 const ShippingManager = () => {
   const [freeShipping, setFreeShipping] = useState<FreeShippingWilaya[]>([]);
   const [deliverySettings, setDeliverySettings] = useState<DeliverySettings | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [wilayaPrices, setWilayaPrices] = useState<WilayaDeliveryPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -46,19 +55,22 @@ const ShippingManager = () => {
 
   const fetchData = async () => {
     try {
-      const [freeShipRes, deliveryRes, siteRes] = await Promise.all([
+      const [freeShipRes, deliveryRes, siteRes, pricesRes] = await Promise.all([
         supabase.from("free_shipping_wilayas").select("*"),
         supabase.from("delivery_settings").select("*").limit(1).maybeSingle(),
         supabase.from("site_settings").select("id, whatsapp_template").limit(1).maybeSingle(),
+        supabase.from("wilaya_delivery_prices").select("*").order("wilaya_code"),
       ]);
 
       if (freeShipRes.error) throw freeShipRes.error;
       if (deliveryRes.error) throw deliveryRes.error;
       if (siteRes.error) throw siteRes.error;
+      if (pricesRes.error) throw pricesRes.error;
 
       setFreeShipping(freeShipRes.data || []);
       setDeliverySettings(deliveryRes.data);
       setSiteSettings(siteRes.data);
+      setWilayaPrices(pricesRes.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -123,6 +135,27 @@ const ShippingManager = () => {
     }
   };
 
+  const updateWilayaPrice = async (id: string, field: 'home_price' | 'office_price', value: number) => {
+    const wilaya = wilayaPrices.find(w => w.id === id);
+    if (!wilaya) return;
+
+    try {
+      const { error } = await supabase
+        .from("wilaya_delivery_prices")
+        .update({ [field]: value })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setWilayaPrices(wilayaPrices.map(w => 
+        w.id === id ? { ...w, [field]: value } : w
+      ));
+    } catch (error) {
+      console.error("Error updating wilaya price:", error);
+      toast({ title: "خطأ", description: "فشل في تحديث السعر", variant: "destructive" });
+    }
+  };
+
   const saveWhatsAppTemplate = async () => {
     if (!siteSettings) return;
     setSaving(true);
@@ -158,37 +191,56 @@ const ShippingManager = () => {
         <h2 className="text-xl font-bold">إعدادات الشحن والتوصيل</h2>
       </div>
 
-      {/* Delivery Prices */}
+      {/* Wilaya-specific Delivery Prices */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">أسعار التوصيل حسب الولاية</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            تعديل أسعار التوصيل لكل ولاية (انقر على السعر لتعديله)
+          </p>
+          <ScrollArea className="h-96 border rounded-lg">
+            <div className="divide-y">
+              {wilayaPrices.map(wilaya => (
+                <div key={wilaya.id} className="flex items-center justify-between p-3 hover:bg-muted/50">
+                  <span className="font-medium text-sm">
+                    {wilaya.wilaya_code} - {wilaya.wilaya_name}
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">مكتب:</span>
+                      <Input
+                        type="number"
+                        value={wilaya.office_price}
+                        onChange={e => updateWilayaPrice(wilaya.id, 'office_price', Number(e.target.value))}
+                        className="w-20 h-8 text-sm text-center"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">منزل:</span>
+                      <Input
+                        type="number"
+                        value={wilaya.home_price}
+                        onChange={e => updateWilayaPrice(wilaya.id, 'home_price', Number(e.target.value))}
+                        className="w-20 h-8 text-sm text-center"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Default Delivery Prices & WhatsApp */}
       {deliverySettings && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">أسعار التوصيل</CardTitle>
+            <CardTitle className="text-lg">إعدادات افتراضية</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>سعر التوصيل للمكتب (دج)</Label>
-                <Input
-                  type="number"
-                  value={deliverySettings.office_price}
-                  onChange={e => setDeliverySettings({
-                    ...deliverySettings,
-                    office_price: Number(e.target.value)
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>سعر التوصيل للمنزل (دج)</Label>
-                <Input
-                  type="number"
-                  value={deliverySettings.home_price}
-                  onChange={e => setDeliverySettings({
-                    ...deliverySettings,
-                    home_price: Number(e.target.value)
-                  })}
-                />
-              </div>
-            </div>
             <div className="space-y-2">
               <Label>رقم الواتساب للتواصل</Label>
               <Input
@@ -203,7 +255,7 @@ const ShippingManager = () => {
             </div>
             <Button onClick={saveDeliverySettings} disabled={saving}>
               <Save className="h-4 w-4 ml-2" />
-              حفظ أسعار التوصيل
+              حفظ الإعدادات
             </Button>
           </CardContent>
         </Card>
