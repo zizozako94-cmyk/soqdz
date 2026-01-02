@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Package, RefreshCw, Image, Plus, X, Upload, Camera } from "lucide-react";
+import { Save, Package, RefreshCw, Image, Plus, X, Upload, Camera, Award, Pencil, Trash2 } from "lucide-react";
 
 interface Product {
   id: string;
@@ -28,9 +28,13 @@ const ProductsManager = () => {
     description: "",
     price: 9200,
     images: [] as string[],
+    features: [] as string[],
     stock_count: 50,
   });
   const [newImageUrl, setNewImageUrl] = useState("");
+  const [newFeature, setNewFeature] = useState("");
+  const [editingFeatureIndex, setEditingFeatureIndex] = useState<number | null>(null);
+  const [editingFeatureValue, setEditingFeatureValue] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -55,6 +59,7 @@ const ProductsManager = () => {
         description: data.description || "",
         price: data.price,
         images: data.images || [],
+        features: data.features || [],
         stock_count: data.stock_count || 50,
       });
     }
@@ -76,6 +81,7 @@ const ProductsManager = () => {
         description: formData.description,
         price: formData.price,
         images: formData.images,
+        features: formData.features,
         stock_count: formData.stock_count,
       })
       .eq("id", product.id);
@@ -110,6 +116,47 @@ const ProductsManager = () => {
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
     }));
+  };
+
+  // Features management functions
+  const addFeature = () => {
+    if (newFeature.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        features: [...prev.features, newFeature.trim()],
+      }));
+      setNewFeature("");
+    }
+  };
+
+  const removeFeature = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
+  const startEditingFeature = (index: number) => {
+    setEditingFeatureIndex(index);
+    setEditingFeatureValue(formData.features[index]);
+  };
+
+  const saveEditingFeature = () => {
+    if (editingFeatureIndex !== null && editingFeatureValue.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        features: prev.features.map((f, i) => 
+          i === editingFeatureIndex ? editingFeatureValue.trim() : f
+        ),
+      }));
+      setEditingFeatureIndex(null);
+      setEditingFeatureValue("");
+    }
+  };
+
+  const cancelEditingFeature = () => {
+    setEditingFeatureIndex(null);
+    setEditingFeatureValue("");
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -274,6 +321,96 @@ const ProductsManager = () => {
             placeholder="50"
             className="w-32"
           />
+        </div>
+
+        {/* Features Management Section */}
+        <div className="space-y-4">
+          <Label className="flex items-center gap-2">
+            <Award className="h-4 w-4" />
+            مميزات المنتج (تظهر تحت وصف المنتج)
+          </Label>
+          
+          {/* Add new feature input */}
+          <div className="flex gap-2">
+            <Input
+              value={newFeature}
+              onChange={(e) => setNewFeature(e.target.value)}
+              placeholder="أدخل ميزة جديدة مثل: قوة 800 واط"
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addFeature();
+                }
+              }}
+            />
+            <Button onClick={addFeature} variant="outline" size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Features list */}
+          {formData.features.length > 0 ? (
+            <div className="grid gap-2">
+              {formData.features.map((feature, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border group"
+                >
+                  {editingFeatureIndex === index ? (
+                    <>
+                      <Input
+                        value={editingFeatureValue}
+                        onChange={(e) => setEditingFeatureValue(e.target.value)}
+                        className="flex-1"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveEditingFeature();
+                          } else if (e.key === 'Escape') {
+                            cancelEditingFeature();
+                          }
+                        }}
+                      />
+                      <Button onClick={saveEditingFeature} size="sm" variant="default">
+                        حفظ
+                      </Button>
+                      <Button onClick={cancelEditingFeature} size="sm" variant="outline">
+                        إلغاء
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Award className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="flex-1">{feature}</span>
+                      <Button
+                        onClick={() => startEditingFeature(index)}
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => removeFeature(index)}
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground">
+              <Award className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>لا توجد مميزات - أضف مميزات المنتج</p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
