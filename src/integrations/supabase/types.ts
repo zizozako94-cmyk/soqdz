@@ -406,6 +406,36 @@ export type Database = {
         }
         Relationships: []
       }
+      wilaya_delivery_prices: {
+        Row: {
+          created_at: string
+          home_price: number
+          id: string
+          office_price: number
+          updated_at: string
+          wilaya_code: string
+          wilaya_name: string
+        }
+        Insert: {
+          created_at?: string
+          home_price?: number
+          id?: string
+          office_price?: number
+          updated_at?: string
+          wilaya_code: string
+          wilaya_name: string
+        }
+        Update: {
+          created_at?: string
+          home_price?: number
+          id?: string
+          office_price?: number
+          updated_at?: string
+          wilaya_code?: string
+          wilaya_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
