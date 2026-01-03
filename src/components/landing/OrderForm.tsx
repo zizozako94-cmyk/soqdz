@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { User, Phone, MapPin, Truck, Home, Building, Gift } from "lucide-react";
+import { trackPurchase, trackInitiateCheckout } from "@/lib/metaPixel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -152,6 +153,15 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
         throw new Error(response.data.error);
       }
 
+      // Track Purchase event on successful order
+      trackPurchase({
+        value: totalPrice,
+        currency: "DZD",
+        content_name: product?.name || "Product",
+        content_type: "product",
+        content_ids: product?.id ? [product.id] : []
+      });
+
       // Navigate to success page
       navigate("/success");
     } catch (error) {
@@ -184,7 +194,14 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
           </div>
 
           {/* Form Card */}
-          <form onSubmit={handleSubmit(onSubmit)} className="bg-background rounded-3xl shadow-strong p-6 md:p-8 space-y-6">
+          <form 
+            onSubmit={handleSubmit(onSubmit)} 
+            className="bg-background rounded-3xl shadow-strong p-6 md:p-8 space-y-6"
+            onFocus={() => {
+              // Track InitiateCheckout when user starts filling the form
+              trackInitiateCheckout({ value: productPrice, currency: "DZD" });
+            }}
+          >
             {/* Customer Name */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-base">
