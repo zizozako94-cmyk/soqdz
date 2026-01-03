@@ -1,5 +1,4 @@
-// Meta (Facebook) Pixel Integration
-// Pixel ID: 1944966153032787
+// Meta (Facebook) Pixel Integration - Dynamic Pixel ID from Database
 
 declare global {
   interface Window {
@@ -14,13 +13,16 @@ declare global {
   }
 }
 
-const PIXEL_ID = '1944966153032787';
+let currentPixelId: string | null = null;
 
-export const initMetaPixel = (): void => {
-  if (typeof window === 'undefined') return;
+export const initMetaPixel = (pixelId: string): void => {
+  if (typeof window === 'undefined' || !pixelId) return;
   
-  // Check if already initialized
-  if (window.fbq) return;
+  // If already initialized with the same pixel ID, skip
+  if (window.fbq && currentPixelId === pixelId) return;
+  
+  // Store the current pixel ID
+  currentPixelId = pixelId;
 
   // Meta Pixel Base Code
   const n = function (...args: unknown[]) {
@@ -39,20 +41,25 @@ export const initMetaPixel = (): void => {
   window.fbq = n;
   window._fbq = n;
 
-  const s = document.createElement('script');
-  const fjs = document.getElementsByTagName('script')[0];
-  
-  s.async = true;
-  s.src = 'https://connect.facebook.net/en_US/fbevents.js';
-  
-  if (fjs && fjs.parentNode) {
-    fjs.parentNode.insertBefore(s, fjs);
-  } else {
-    document.head.appendChild(s);
+  // Check if script already exists
+  const existingScript = document.querySelector('script[src*="fbevents.js"]');
+  if (!existingScript) {
+    const s = document.createElement('script');
+    const fjs = document.getElementsByTagName('script')[0];
+    
+    s.async = true;
+    s.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    
+    if (fjs && fjs.parentNode) {
+      fjs.parentNode.insertBefore(s, fjs);
+    } else {
+      document.head.appendChild(s);
+    }
   }
 
-  // Initialize pixel
-  window.fbq('init', PIXEL_ID);
+  // Initialize pixel with the provided ID
+  window.fbq('init', pixelId);
+  console.log('Meta Pixel initialized with ID:', pixelId);
 };
 
 // Track PageView event
@@ -79,6 +86,7 @@ export const trackPurchase = (data: {
 }): void => {
   if (typeof window !== 'undefined' && window.fbq) {
     window.fbq('track', 'Purchase', data);
+    console.log('Meta Pixel: Purchase event tracked', data);
   }
 };
 
@@ -88,3 +96,6 @@ export const trackInitiateCheckout = (data?: { value?: number; currency?: string
     window.fbq('track', 'InitiateCheckout', data);
   }
 };
+
+// Get the current pixel ID
+export const getCurrentPixelId = (): string | null => currentPixelId;
