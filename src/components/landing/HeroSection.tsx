@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Zap, Shield, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackLead } from "@/lib/metaPixel";
 
 interface HeroSectionProps {
   product: {
@@ -100,7 +101,15 @@ const HeroSection = ({ product, onOrderClick }: HeroSectionProps) => {
               variant="hero" 
               size="xl" 
               className="w-full"
-              onClick={onOrderClick}
+              onClick={() => {
+                // Track Lead event when CTA is clicked
+                trackLead({
+                  content_name: product?.name || "حفارة HONESTPRO 800 واط",
+                  value: product?.price || 9200,
+                  currency: "DZD"
+                });
+                onOrderClick();
+              }}
             >
               🛒 اطلب الآن
             </Button>
