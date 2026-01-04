@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,13 +8,7 @@ import { trackPurchase, trackInitiateCheckout } from "@/lib/metaPixel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LocationCombobox } from "./LocationCombobox";
 import { wilayas, getWilayaByName } from "@/data/algeriaLocations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -97,7 +91,27 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
   });
 
   const watchedWilaya = watch("wilaya");
+  const watchedCommune = watch("commune");
   const selectedWilayaData = getWilayaByName(watchedWilaya);
+
+  // Prepare wilaya options for combobox
+  const wilayaOptions = useMemo(() => 
+    wilayas.map((wilaya) => ({
+      value: wilaya.name,
+      label: wilaya.name,
+      code: wilaya.code,
+    })),
+    []
+  );
+
+  // Prepare commune options based on selected wilaya
+  const communeOptions = useMemo(() => {
+    if (!selectedWilayaData) return [];
+    return selectedWilayaData.communes.map((commune) => ({
+      value: commune,
+      label: commune,
+    }));
+  }, [selectedWilayaData]);
 
   const productPrice = product?.price || 9200;
   
@@ -236,51 +250,42 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
             </div>
 
             {/* Wilaya */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-base">
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-base md:text-lg font-semibold">
                 <MapPin className="w-5 h-5 text-gold" />
                 الولاية
               </Label>
-              <Select onValueChange={handleWilayaChange} value={watchedWilaya}>
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="اختر الولاية" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {wilayas.map((wilaya) => (
-                    <SelectItem key={wilaya.code} value={wilaya.name}>
-                      {wilaya.code} - {wilaya.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <LocationCombobox
+                options={wilayaOptions}
+                value={watchedWilaya || ""}
+                onValueChange={handleWilayaChange}
+                placeholder="🔍 ابحث واختر الولاية"
+                searchPlaceholder="اكتب اسم الولاية أو رقمها..."
+                emptyMessage="لم يتم العثور على ولاية"
+                showCode={true}
+              />
               {errors.wilaya && (
-                <p className="text-destructive text-sm">{errors.wilaya.message}</p>
+                <p className="text-destructive text-sm font-medium">{errors.wilaya.message}</p>
               )}
             </div>
 
             {/* Commune */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-base">
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-base md:text-lg font-semibold">
                 <MapPin className="w-5 h-5 text-gold" />
                 البلدية
               </Label>
-              <Select
+              <LocationCombobox
+                options={communeOptions}
+                value={watchedCommune || ""}
                 onValueChange={(value) => setValue("commune", value)}
+                placeholder={selectedWilayaData ? "🔍 ابحث واختر البلدية" : "اختر الولاية أولاً"}
+                searchPlaceholder="اكتب اسم البلدية..."
+                emptyMessage="لم يتم العثور على بلدية"
                 disabled={!selectedWilayaData}
-              >
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder={selectedWilayaData ? "اختر البلدية" : "اختر الولاية أولاً"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {selectedWilayaData?.communes.map((commune) => (
-                    <SelectItem key={commune} value={commune}>
-                      {commune}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
               {errors.commune && (
-                <p className="text-destructive text-sm">{errors.commune.message}</p>
+                <p className="text-destructive text-sm font-medium">{errors.commune.message}</p>
               )}
             </div>
 
