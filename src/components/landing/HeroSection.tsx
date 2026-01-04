@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Zap, Shield, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackLead } from "@/lib/metaPixel";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface HeroSectionProps {
   product: {
@@ -17,21 +18,60 @@ interface HeroSectionProps {
 
 const HeroSection = ({ product, onOrderClick }: HeroSectionProps) => {
   const [currentImage, setCurrentImage] = useState(0);
+  
+  // Embla carousel for smooth swipe with RTL support
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    direction: "rtl",
+    dragFree: false,
+    containScroll: "trimSnaps",
+    skipSnaps: false,
+  });
 
   // Default images if no product images
   const images = product?.images?.length 
     ? product.images 
     : ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % images.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [images.length]);
+  // Sync currentImage with Embla's selected index
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCurrentImage(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
 
-  const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
-  const prevImage = () => setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    emblaApi.on("select", onSelect);
+    onSelect();
+
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  // Auto-advance slides every 4 seconds
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    const interval = setInterval(() => {
+      emblaApi.scrollNext();
+    }, 4000);
+    
+    return () => clearInterval(interval);
+  }, [emblaApi]);
+
+  const nextImage = useCallback(() => {
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
+  const prevImage = useCallback(() => {
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  const goToImage = useCallback((index: number) => {
+    emblaApi?.scrollTo(index);
+  }, [emblaApi]);
 
   return (
     <section className="relative min-h-screen gradient-hero overflow-hidden">
@@ -118,24 +158,26 @@ const HeroSection = ({ product, onOrderClick }: HeroSectionProps) => {
           {/* Product Images */}
           <div className="relative order-1 lg:order-2">
             <div className="relative bg-card rounded-3xl shadow-strong overflow-hidden aspect-square">
-              {/* Image Slider */}
-              <div className="relative w-full h-full">
-                {images.map((img, index) => (
-                  <div
-                    key={index}
-                    className={`absolute inset-0 transition-all duration-500 ${
-                      index === currentImage 
-                        ? "opacity-100 scale-100" 
-                        : "opacity-0 scale-95"
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`صورة المنتج ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
+              {/* Embla Carousel Container */}
+              <div 
+                ref={emblaRef} 
+                className="overflow-hidden w-full h-full touch-pan-y"
+              >
+                <div className="flex h-full" style={{ touchAction: "pan-y pinch-zoom" }}>
+                  {images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="flex-[0_0_100%] min-w-0 h-full"
+                    >
+                      <img
+                        src={img}
+                        alt={`صورة المنتج ${index + 1}`}
+                        className="w-full h-full object-cover pointer-events-none select-none"
+                        draggable={false}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Navigation Arrows */}
@@ -143,13 +185,15 @@ const HeroSection = ({ product, onOrderClick }: HeroSectionProps) => {
                 <>
                   <button
                     onClick={prevImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-sm p-2 rounded-full shadow-soft hover:shadow-medium transition-all"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-sm p-3 rounded-full shadow-soft hover:shadow-medium hover:bg-card transition-all active:scale-95 z-10"
+                    aria-label="الصورة السابقة"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
                   <button
                     onClick={nextImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-sm p-2 rounded-full shadow-soft hover:shadow-medium transition-all"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-sm p-3 rounded-full shadow-soft hover:shadow-medium hover:bg-card transition-all active:scale-95 z-10"
+                    aria-label="الصورة التالية"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
@@ -157,15 +201,16 @@ const HeroSection = ({ product, onOrderClick }: HeroSectionProps) => {
               )}
 
               {/* Image Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {images.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentImage(index)}
-                    className={`w-3 h-3 rounded-full transition-all ${
+                    onClick={() => goToImage(index)}
+                    aria-label={`الصورة ${index + 1}`}
+                    className={`h-3 rounded-full transition-all duration-300 ${
                       index === currentImage 
                         ? "bg-gold w-8" 
-                        : "bg-card/60"
+                        : "bg-card/60 hover:bg-card/80 w-3"
                     }`}
                   />
                 ))}
