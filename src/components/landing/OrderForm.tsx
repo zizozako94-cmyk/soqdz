@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { User, Phone, MapPin, Truck, Home, Building, Gift } from "lucide-react";
+import { User, Phone, MapPin, Truck, Home, Building, Gift, MapPinned } from "lucide-react";
 import { trackPurchase, trackInitiateCheckout } from "@/lib/metaPixel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ const orderSchema = z.object({
   phone: z.string().regex(/^0[567]\d{8}$/, "رقم الهاتف غير صحيح (يجب أن يبدأ ب 05, 06 أو 07)"),
   wilaya: z.string().min(1, "الرجاء اختيار الولاية"),
   commune: z.string().min(1, "الرجاء اختيار البلدية"),
+  residence: z.string().max(200).optional(),
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
@@ -142,6 +143,7 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
           phone: data.phone,
           wilaya: data.wilaya,
           commune: data.commune,
+          residence: data.residence || "",
           delivery_type: deliveryType,
           product_id: product?.id,
           product_price: productPrice,
@@ -287,6 +289,20 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
               {errors.commune && (
                 <p className="text-destructive text-sm font-medium">{errors.commune.message}</p>
               )}
+            </div>
+
+            {/* Residence / Place of Residence (Optional) */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-base md:text-lg font-semibold">
+                <MapPinned className="w-5 h-5 text-gold" />
+                مكان الإقامة
+                <span className="text-muted-foreground text-sm font-normal">(اختياري)</span>
+              </Label>
+              <Input
+                {...register("residence")}
+                placeholder="مثال: حي 500 مسكن، عمارة ب، رقم 12"
+                className="min-h-[55px] h-auto py-3 px-4 text-base md:text-lg font-medium border-2 border-border/60 hover:border-gold/50 focus:border-gold bg-background hover:bg-muted/30 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl"
+              />
             </div>
 
             {/* Free Shipping Notice */}
