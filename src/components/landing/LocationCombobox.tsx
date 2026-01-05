@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,7 +113,7 @@ export function LocationCombobox({
               className="flex h-12 w-full bg-transparent py-3 text-base md:text-lg outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus:ring-0"
             />
           </div>
-          <CommandList className="max-h-[300px] overflow-y-auto">
+          <CommandList className="max-h-[400px] overflow-y-auto">
             <CommandEmpty className="py-8 text-center text-muted-foreground">
               {emptyMessage}
             </CommandEmpty>
@@ -128,27 +128,34 @@ export function LocationCombobox({
                     setSearchQuery("");
                   }}
                   className={cn(
-                    "flex items-center justify-between gap-2 py-3 px-4 cursor-pointer",
-                    "text-base md:text-lg min-h-[48px]",
-                    "hover:bg-gold/10 active:bg-gold/20",
-                    "transition-colors duration-150",
-                    value === option.value && "bg-gold/10"
+                    "flex items-center gap-4 py-4 px-5 cursor-pointer",
+                    "text-lg md:text-xl min-h-[56px]",
+                    "hover:bg-muted/50 active:bg-muted",
+                    "transition-colors duration-150 border-b border-border/30 last:border-b-0"
                   )}
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  {/* Radio button style indicator */}
+                  <div 
+                    className={cn(
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      value === option.value 
+                        ? "border-foreground" 
+                        : "border-muted-foreground/50"
+                    )}
+                  >
+                    {value === option.value && (
+                      <div className="w-3 h-3 rounded-full bg-foreground" />
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-3 flex-1 justify-end">
+                    <span className="font-semibold text-foreground">{option.label}</span>
                     {showCode && option.code && (
-                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md text-sm font-bold min-w-[32px] text-center">
+                      <span className="bg-gold/10 text-gold px-2 py-0.5 rounded-md text-sm font-bold min-w-[32px] text-center">
                         {option.code}
                       </span>
                     )}
-                    <span className="font-medium">{option.label}</span>
                   </div>
-                  <Check
-                    className={cn(
-                      "h-5 w-5 text-gold shrink-0",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
                 </CommandItem>
               ))}
             </CommandGroup>
