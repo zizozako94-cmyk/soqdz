@@ -169,14 +169,17 @@ const OrderForm = ({ product, deliverySettings }: OrderFormProps) => {
         throw new Error(response.data.error);
       }
 
-      // Track Purchase event on successful order
-      trackPurchase({
-        value: totalPrice,
-        currency: "DZD",
-        content_name: product?.name || "Product",
-        content_type: "product",
-        content_ids: product?.id ? [product.id] : []
-      });
+      // Track Facebook Pixel Purchase event on successful order
+      if (window.fbq) {
+        window.fbq('track', 'Purchase', {
+          value: totalPrice,
+          currency: 'DZD',
+          content_name: product?.name || "Product",
+          content_type: "product",
+          content_ids: product?.id ? [product.id] : []
+        });
+        console.log('Facebook Pixel: Purchase event tracked successfully', { value: totalPrice, currency: 'DZD' });
+      }
 
       // Navigate to success page
       navigate("/success");
